@@ -14,22 +14,11 @@ fn getDigitValueFromWordWindow(window: []const u8, fromBack: bool) ?usize {
         "nine",
     };
 
-    if (fromBack) {
-        for (words, 0..) |word, i| {
-            var windowMax = if (word.len > window.len) window.len else word.len;
-
-            if (std.mem.eql(u8, word, window[window.len - windowMax ..])) {
-                return i;
-            }
-        }
-
-        return null;
-    }
-
     for (words, 0..) |word, i| {
-        var windowMax = if (word.len > window.len) window.len else word.len;
+        const windowMax = if (word.len > window.len) window.len else word.len;
+        const shrunkWindow = if (fromBack) window[window.len - windowMax ..] else window[0..windowMax];
 
-        if (std.mem.eql(u8, word, window[0..windowMax])) {
+        if (std.mem.eql(u8, word, shrunkWindow)) {
             return i;
         }
     }
@@ -38,12 +27,19 @@ fn getDigitValueFromWordWindow(window: []const u8, fromBack: bool) ?usize {
 }
 
 pub fn main() !void {
-    var file = try std.fs.cwd().openFile("input.txt", .{});
+    var file = std.io.getStdIn();
+    var args = std.process.args();
+
+    _ = args.skip();
+
+    if (args.next()) |fileName| {
+        file = try std.fs.cwd().openFile(fileName, .{});
+    }
+
     defer file.close();
 
-    var allocator = std.heap.page_allocator;
+    const allocator = std.heap.page_allocator;
     var reader = file.reader();
-
     var total: usize = 0;
 
     while (try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 1024)) |line| {
