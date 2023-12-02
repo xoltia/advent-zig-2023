@@ -38,6 +38,7 @@ pub fn main() !void {
     }
     var allocator = gpa.allocator();
     var total: usize = 0;
+    var totalPower: usize = 0;
 
     while (try reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 1024)) |line| {
         defer allocator.free(line);
@@ -50,7 +51,11 @@ pub fn main() !void {
         const id = try std.fmt.parseUnsigned(usize, line[5..(5 + i)], 10);
         i += 6;
         var valid = true;
-        outer: while (i < line.len) {
+        var maxRed: usize = 0;
+        var maxGreen: usize = 0;
+        var maxBlue: usize = 0;
+
+        while (i < line.len) {
             var red: usize = 0;
             var green: usize = 0;
             var blue: usize = 0;
@@ -86,14 +91,20 @@ pub fn main() !void {
 
             if (red > 12 or green > 13 or blue > 14) {
                 valid = false;
-                break :outer;
             }
+
+            if (red > maxRed) maxRed = red;
+            if (green > maxGreen) maxGreen = green;
+            if (blue > maxBlue) maxBlue = blue;
         }
 
         if (valid) {
             total += id;
         }
+
+        totalPower += maxRed * maxGreen * maxBlue;
     }
 
     std.debug.print("Sum: {any}\n", .{total});
+    std.debug.print("Power: {any}\n", .{totalPower});
 }
