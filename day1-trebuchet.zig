@@ -50,9 +50,8 @@ pub fn main() !void {
                     break;
                 },
                 else => {
-                    var digit = getDigitValueFromWordWindow(line[i..], false);
-                    if (digit != null) {
-                        total += digit.? * 10;
+                    if (getDigitValueFromWordWindow(line[i..], false)) |x| {
+                        total += x * 10;
                         break;
                     }
                 },
@@ -68,9 +67,8 @@ pub fn main() !void {
                     break;
                 },
                 else => {
-                    var digit = getDigitValueFromWordWindow(line[0 .. i + 1], true);
-                    if (digit != null) {
-                        total += digit.?;
+                    if (getDigitValueFromWordWindow(line[0 .. i + 1], true)) |x| {
+                        total += x;
                         break;
                     }
                 },
