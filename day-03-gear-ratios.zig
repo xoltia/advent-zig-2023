@@ -12,12 +12,9 @@ const ProductList = struct {
 };
 
 fn multiplyByCoord(list: *std.ArrayList(ProductList), p: ProductList) std.mem.Allocator.Error!void {
-    std.debug.print("multiplyByCoord({d}, {d}, {d})\n", .{ p.x, p.y, p.value });
     for (list.items, 0..) |item, i| {
-        std.debug.print("\tProductList{{ .x = {d}, .y = {d}, .value = {d} }}\n", .{ item.x, item.y, item.value });
         if (item.x == p.x and item.y == p.y) {
             list.items[i] = item.multiply(p.value);
-            std.debug.print(" => {d}\n", .{item.value});
             return;
         }
     }
