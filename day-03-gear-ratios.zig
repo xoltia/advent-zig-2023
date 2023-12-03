@@ -67,42 +67,26 @@ pub fn main() !void {
             const upperX = x;
             const numberLiteral = row[lowerX..upperX];
             const number = try std.fmt.parseUnsigned(u32, numberLiteral, 10);
+            var counted: bool = false;
 
             if (x < row.len and row[x] != '.') {
-                sum += number;
-            } else if ((lowerX != 0) and row[lowerX - 1] != '.') {
-                sum += number;
-            } else {
-                const safeUpperX = @min(x + 1, row.len);
-                const safeLowerX = if (lowerX == 0) 0 else (lowerX - 1);
-                const adjacent: bool = blk: {
-                    if (prevRow) |r| {
-                        for (r[safeLowerX..safeUpperX]) |ca| {
-                            if (ca != '.') {
-                                break :blk true;
-                            }
-                        }
-                    }
+                if (!counted) {
+                    sum += number;
+                    counted = true;
+                }
 
-                    if (nextRow) |r| {
-                        for (r[safeLowerX..safeUpperX]) |ca| {
-                            if (ca != '.') {
-                                break :blk true;
-                            }
-                        }
-                    }
-
-                    break :blk false;
-                };
-
-                if (adjacent) sum += number;
+                if (row[x] == '*')
+                    try multiplyByCoord(&productList, .{ x, y, number, 0 });
             }
 
-            if (x < row.len and row[x] == '*') {
-                try multiplyByCoord(&productList, .{ x, y, number, 0 });
-            }
-            if ((lowerX != 0) and row[lowerX - 1] == '*') {
-                try multiplyByCoord(&productList, .{ lowerX - 1, y, number, 0 });
+            if ((lowerX != 0) and row[lowerX - 1] != '.') {
+                if (!counted) {
+                    sum += number;
+                    counted = true;
+                }
+
+                if (row[lowerX - 1] == '*')
+                    try multiplyByCoord(&productList, .{ lowerX - 1, y, number, 0 });
             }
 
             const safeUpperX = @min(x + 1, row.len);
@@ -110,6 +94,11 @@ pub fn main() !void {
 
             if (prevRow) |r| {
                 for (r[safeLowerX..safeUpperX], 0..) |ca, i| {
+                    if (!counted and ca != '.') {
+                        sum += number;
+                        counted = true;
+                    }
+
                     if (ca == '*') {
                         try multiplyByCoord(&productList, .{ safeLowerX + i, y - 1, number, 0 });
                     }
@@ -118,6 +107,11 @@ pub fn main() !void {
 
             if (nextRow) |r| {
                 for (r[safeLowerX..safeUpperX], 0..) |ca, i| {
+                    if (!counted and ca != '.') {
+                        sum += number;
+                        counted = true;
+                    }
+
                     if (ca == '*') {
                         try multiplyByCoord(&productList, .{ safeLowerX + i, y + 1, number, 0 });
                     }
