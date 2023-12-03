@@ -16,8 +16,7 @@ fn readNumber(comptime T: type, str: []const u8, out: *T) !usize {
         break;
     }
     if (n == 0) return 0;
-    var x = try std.fmt.parseUnsigned(u64, str[0..n], 10);
-    out.* = x;
+    out.* = try std.fmt.parseUnsigned(T, str[0..n], 10);
     return n;
 }
 
