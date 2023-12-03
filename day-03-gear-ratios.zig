@@ -27,7 +27,7 @@ pub fn main() !void {
             var c = row[x];
             if (!std.ascii.isDigit(c)) continue;
             const lowerX = x;
-            while (x < (n - 1) and std.ascii.isDigit(row[x])) {
+            while (x < n and std.ascii.isDigit(row[x])) {
                 c = row[x];
                 x += 1;
             }
