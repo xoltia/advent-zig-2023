@@ -1,5 +1,8 @@
 const std = @import("std");
 
+const MAX_CARD_NUM = 203;
+const BUFF_SIZE = 1024 * 100;
+
 inline fn charPairToInt(pair: *const [2]u8) u8 {
     return if (pair[0] != ' ') (pair[0] - '0') * 10 + (pair[1] - '0') else pair[1] - '0';
 }
@@ -36,7 +39,7 @@ pub fn main() !void {
     const file = try std.fs.cwd().openFile(file_name.?, .{});
     var reader = file.reader();
 
-    var buff: [1024 * 100]u8 = undefined;
+    var buff: [BUFF_SIZE]u8 = undefined;
     var n = try reader.readAll(&buff);
 
     var lines = std.mem.splitScalar(u8, buff[0..n], '\n');
@@ -44,7 +47,17 @@ pub fn main() !void {
 
     var total_points: usize = 0;
 
+    var card_growth: [MAX_CARD_NUM]u32 = undefined;
+
+    for (0..card_growth.len) |i| {
+        card_growth[i] = 0;
+    }
+
+    var card_number: usize = 0;
+
     while (lines.next()) |line| {
+        const current_growth = card_growth[card_number] + 1;
+
         var lists = std.mem.splitScalar(u8, line[offset..], '|');
 
         var winning_list_input = lists.next() orelse unreachable;
@@ -69,8 +82,24 @@ pub fn main() !void {
             winning_iterator = number_iterator{ .input = winning_list_input };
         }
 
-        total_points += if (i == 0) 0 else @as(u64, 1) << (i - 1);
+        if (i > 0) {
+            for (1..(i + 1)) |j| {
+                card_growth[card_number + j] += current_growth;
+            }
+            total_points += @as(u64, 1) << (i - 1);
+        }
+
+        card_growth[card_number] = current_growth;
+        card_number += 1;
+    }
+
+    var sum: u32 = 0;
+
+    for (card_growth) |x| {
+        if (x == 0) break;
+        sum += x;
     }
 
     std.debug.print("{d}\n", .{total_points});
+    std.debug.print("{d}\n", .{sum});
 }
