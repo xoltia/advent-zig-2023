@@ -78,8 +78,6 @@ pub fn main() !void {
             if (winning_check_list[charPairToInt(num)] == true) {
                 i += 1;
             }
-
-            winning_iterator = number_iterator{ .input = winning_list_input };
         }
 
         if (i > 0) {
