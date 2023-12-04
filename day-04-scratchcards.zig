@@ -40,7 +40,7 @@ pub fn main() !void {
     var reader = file.reader();
 
     var buff: [BUFF_SIZE]u8 = undefined;
-    var n = try reader.readAll(&buff);
+    const n = try reader.readAll(&buff);
 
     var lines = std.mem.splitScalar(u8, buff[0..n], '\n');
     const offset = std.mem.indexOfScalar(u8, buff[0..n], ':').? + 1;
