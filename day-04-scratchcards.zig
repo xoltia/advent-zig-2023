@@ -1,5 +1,9 @@
 const std = @import("std");
 
+inline fn charPairToInt(pair: *const [2]u8) u8 {
+    return if (pair[0] != ' ') (pair[0] - '0') * 10 + (pair[1] - '0') else pair[1] - '0';
+}
+
 const number_iterator = struct {
     input: []const u8,
 
@@ -51,12 +55,15 @@ pub fn main() !void {
         var owned_iterator = number_iterator{ .input = owned_list_input };
         var winning_iterator = number_iterator{ .input = winning_list_input };
         var i: u6 = 0;
+        var winning_check_list: [100]bool = undefined;
+
+        while (winning_iterator.next()) |num2| {
+            winning_check_list[charPairToInt(num2)] = true;
+        }
 
         while (owned_iterator.next()) |num| {
-            while (winning_iterator.next()) |num2| {
-                if (std.mem.eql(u8, num, num2)) {
-                    i += 1;
-                }
+            if (winning_check_list[charPairToInt(num)] == true) {
+                i += 1;
             }
 
             winning_iterator = number_iterator{ .input = winning_list_input };
