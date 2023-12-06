@@ -170,6 +170,16 @@ fn getKeyRangesForValueRanges(map: []const u8, key_ranges: *std.ArrayList(range)
     return key_ranges.*;
 }
 
+const offsets = [_]comptime_int{
+    "seed-to-soil map:\n".len,
+    "soil-to-fertilizer map:\n".len,
+    "fertilizer-to-water map:\n".len,
+    "water-to-light map:\n".len,
+    "light-to-temperature map:\n".len,
+    "temperature-to-humidity map:\n".len,
+    "humidity-to-location map:\n".len,
+};
+
 pub fn part1(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .scalar), sections: *std.mem.SplitIterator(u8, .sequence)) !void {
     var seed_numbers = std.ArrayList(usize).init(allocator);
     defer seed_numbers.deinit();
@@ -178,16 +188,6 @@ pub fn part1(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .sc
         const number = try std.fmt.parseUnsigned(usize, seed, 10);
         try seed_numbers.append(number);
     }
-
-    const offsets = [_]comptime_int{
-        "seed-to-soil map:\n".len,
-        "soil-to-fertilizer map:\n".len,
-        "fertilizer-to-water map:\n".len,
-        "water-to-light map:\n".len,
-        "light-to-temperature map:\n".len,
-        "temperature-to-humidity map:\n".len,
-        "humidity-to-location map:\n".len,
-    };
 
     inline for (offsets) |offset| {
         try swapKeysForValues(sections.next().?[offset..], &seed_numbers);
@@ -205,16 +205,6 @@ pub fn part2(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .sc
         const length = try std.fmt.parseUnsigned(usize, seeds.next().?, 10);
         try seed_ranges.append(range.newFromLength(number, length));
     }
-
-    const offsets = [_]comptime_int{
-        "seed-to-soil map:\n".len,
-        "soil-to-fertilizer map:\n".len,
-        "fertilizer-to-water map:\n".len,
-        "water-to-light map:\n".len,
-        "light-to-temperature map:\n".len,
-        "temperature-to-humidity map:\n".len,
-        "humidity-to-location map:\n".len,
-    };
 
     inline for (offsets) |offset| {
         seed_ranges = try getKeyRangesForValueRanges(sections.next().?[offset..], &seed_ranges);
