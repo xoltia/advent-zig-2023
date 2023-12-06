@@ -7,7 +7,7 @@ const map_entry = struct {
     lower_key: usize,
     upper_key: usize,
 
-    fn get_value(self: map_entry, key: usize) ?usize {
+    fn getValue(self: map_entry, key: usize) ?usize {
         if (key < self.lower_key or key > self.upper_key) {
             return null;
         }
@@ -43,7 +43,7 @@ fn swapKeysForValues(map: []const u8, keys: *std.ArrayList(usize)) !void {
         const entry = try readMapEntry(line);
 
         for (keys.items, 0..) |key, i| {
-            if (entry.get_value(key)) |value| {
+            if (entry.getValue(key)) |value| {
                 values.items[i] = value;
                 found += 1;
             }
