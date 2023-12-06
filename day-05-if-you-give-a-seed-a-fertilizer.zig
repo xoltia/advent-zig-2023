@@ -245,7 +245,7 @@ pub fn main() !void {
 
     seeds.reset();
     sections.reset();
-    seeds = std.mem.splitScalar(u8, sections.next().?[7..], ' ');
+    _ = sections.next();
 
     try part2(allocator, &seeds, &sections);
 }
