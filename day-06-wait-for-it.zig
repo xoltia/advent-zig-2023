@@ -1,10 +1,16 @@
 const std = @import("std");
 
+// For answer to part 2 run as:
+// tr -d ' ' < input_file | ./day-06-wait-for-it
+
 pub fn main() !void {
     var args = std.process.args();
     _ = args.next() orelse unreachable;
 
-    const file = if (args.next()) |file_name| try std.fs.cwd().openFile(file_name, .{}) else std.io.getStdIn();
+    const file = if (args.next()) |file_name|
+        try std.fs.cwd().openFile(file_name, .{})
+    else
+        std.io.getStdIn();
     defer file.close();
     var buff: [1024]u8 = undefined;
     const n = try file.readAll(&buff);
