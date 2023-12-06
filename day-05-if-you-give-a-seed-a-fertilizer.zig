@@ -180,7 +180,9 @@ const offsets = [_]comptime_int{
     "humidity-to-location map:\n".len,
 };
 
-pub fn part1(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .scalar), sections: *std.mem.SplitIterator(u8, .sequence)) !void {
+fn part1(allocator: std.mem.Allocator, input: []u8) !void {
+    var sections = std.mem.splitSequence(u8, input, "\n\n");
+    var seeds = std.mem.splitScalar(u8, sections.next().?[7..], ' ');
     var seed_numbers = std.ArrayList(usize).init(allocator);
     defer seed_numbers.deinit();
 
@@ -197,7 +199,9 @@ pub fn part1(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .sc
     std.debug.print("Lowest location: {d}\n", .{min});
 }
 
-pub fn part2(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .scalar), sections: *std.mem.SplitIterator(u8, .sequence)) !void {
+fn part2(allocator: std.mem.Allocator, input: []u8) !void {
+    var sections = std.mem.splitSequence(u8, input, "\n\n");
+    var seeds = std.mem.splitScalar(u8, sections.next().?[7..], ' ');
     var seed_ranges = std.ArrayList(range).init(allocator);
 
     while (seeds.next()) |seed| {
@@ -218,6 +222,8 @@ pub fn part2(allocator: std.mem.Allocator, seeds: *std.mem.SplitIterator(u8, .sc
         }
     }
 
+    seed_ranges.deinit();
+
     std.debug.print("Lowest location: {d}\n", .{min});
 }
 
@@ -234,18 +240,11 @@ pub fn main() !void {
     const file = try std.fs.cwd().openFile(file_name.?, .{});
     var reader = file.reader();
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.GeneralPurposeAllocator(.{ .thread_safe = true }){};
     var allocator = gpa.allocator();
 
     const input = try reader.readAllAlloc(allocator, MAX_FILE_SIZE);
-    var sections = std.mem.splitSequence(u8, input, "\n\n");
-    var seeds = std.mem.splitScalar(u8, sections.next().?[7..], ' ');
 
-    try part1(allocator, &seeds, &sections);
-
-    seeds.reset();
-    sections.reset();
-    _ = sections.next();
-
-    try part2(allocator, &seeds, &sections);
+    try part1(allocator, input);
+    try part2(allocator, input);
 }
