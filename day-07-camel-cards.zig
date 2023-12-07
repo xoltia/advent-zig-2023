@@ -63,17 +63,13 @@ const hand_type = enum(u8) {
         var pair_count: usize = 0;
         var three_of_a_kind = false;
 
-        for (card_counts) |count| {
-            if (count == 2) {
-                pair_count += 1;
-            } else if (count == 3) {
-                three_of_a_kind = true;
-            } else if (count == 4) {
-                return .four_of_a_kind;
-            } else if (count == 5) {
-                return .five_of_a_kind;
-            }
-        }
+        for (card_counts) |count| switch (count) {
+            2 => pair_count += 1,
+            3 => three_of_a_kind = true,
+            4 => return .four_of_a_kind,
+            5 => return .five_of_a_kind,
+            else => continue,
+        };
 
         return if (three_of_a_kind and pair_count == 1)
             .full_house
