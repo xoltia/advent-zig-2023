@@ -3,8 +3,8 @@ const std = @import("std");
 const MAX_FILE_SIZE = 100 * 1024;
 const MAX_CARDS = 1000;
 
-inline fn cardToValue(card: u8) u8 {
-    return switch (card) {
+fn cardToValue(card: u8, joker_wildcard: bool) u8 {
+    const base_value: u8 = switch (card) {
         '2' => 0,
         '3' => 1,
         '4' => 2,
@@ -20,6 +20,15 @@ inline fn cardToValue(card: u8) u8 {
         'A' => 12,
         else => unreachable,
     };
+
+    return if (base_value > 9)
+        base_value
+    else if (joker_wildcard and base_value == 9)
+        0
+    else if (joker_wildcard)
+        base_value + 1
+    else
+        base_value;
 }
 
 const hand_type = enum(u8) {
@@ -31,14 +40,25 @@ const hand_type = enum(u8) {
     four_of_a_kind = 5,
     five_of_a_kind = 6,
 
-    fn fromCards(cards: *const [5]u8) hand_type {
+    fn fromCards(cards: *const [5]u8, joker_wildcard: bool) hand_type {
         var card_counts: [13]u8 = undefined;
 
         inline for (0..card_counts.len) |i|
             card_counts[i] = 0;
 
         for (cards) |c|
-            card_counts[cardToValue(c)] += 1;
+            card_counts[cardToValue(c, joker_wildcard)] += 1;
+
+        if (joker_wildcard) {
+            var max_index: usize = 1;
+            for (1..card_counts.len) |i| {
+                if (card_counts[i] > card_counts[max_index]) {
+                    max_index = i;
+                }
+            }
+            card_counts[max_index] += card_counts[0];
+            card_counts[0] = 0;
+        }
 
         var pair_count: usize = 0;
         var three_of_a_kind = false;
@@ -73,28 +93,59 @@ const hand = struct {
     cards: *const [5]u8,
     bid: u32,
 
-    fn new(cards: *const [5]u8, bid: u32) hand {
+    fn new(cards: *const [5]u8, bid: u32, joker_wildcard: bool) hand {
         return hand{
-            .type = hand_type.fromCards(cards),
+            .type = hand_type.fromCards(cards, joker_wildcard),
             .cards = cards,
             .bid = bid,
         };
     }
 
-    fn lessThan(_: @TypeOf(.{}), self: hand, other: hand) bool {
+    fn lessThan(joker_wildcard: bool, self: hand, other: hand) bool {
         if (self.type != other.type) {
             return @intFromEnum(self.type) < @intFromEnum(other.type);
         }
 
         for (0..self.cards.len) |i| {
             if (self.cards[i] != other.cards[i]) {
-                return cardToValue(self.cards[i]) < cardToValue(other.cards[i]);
+                return cardToValue(self.cards[i], joker_wildcard) <
+                    cardToValue(other.cards[i], joker_wildcard);
             }
         }
 
         return false;
     }
 };
+
+fn solve(file_contents: []u8, joker_wildcard: bool) !usize {
+    var lines = std.mem.splitScalar(u8, file_contents, '\n');
+
+    var hands_buff: [MAX_CARDS]hand = undefined;
+    var n_hands: usize = 0;
+
+    while (lines.next()) |line| {
+        if (line.len == 0) {
+            continue;
+        }
+
+        var parts = std.mem.splitScalar(u8, line, ' ');
+        const cards = parts.next() orelse unreachable;
+        const bid = try std.fmt.parseInt(u32, parts.next() orelse unreachable, 10);
+        const h = hand.new(cards[0..5], bid, joker_wildcard);
+        hands_buff[n_hands] = h;
+        n_hands += 1;
+    }
+
+    var hands = hands_buff[0..n_hands];
+    std.sort.heap(hand, hands, joker_wildcard, hand.lessThan);
+
+    var result: usize = 0;
+    for (hands, 0..) |h, i| {
+        result += (i + 1) * h.bid;
+    }
+
+    return result;
+}
 
 pub fn main() !void {
     var args = std.process.args();
@@ -110,32 +161,8 @@ pub fn main() !void {
     var buff: [MAX_FILE_SIZE]u8 = undefined;
     const n = try file.readAll(&buff);
     const file_contents = buff[0..n];
-
-    var lines = std.mem.splitScalar(u8, file_contents, '\n');
-
-    var hands_buff: [MAX_CARDS]hand = undefined;
-    var n_hands: usize = 0;
-
-    while (lines.next()) |line| {
-        if (line.len == 0) {
-            continue;
-        }
-
-        var parts = std.mem.splitScalar(u8, line, ' ');
-        const cards = parts.next() orelse unreachable;
-        const bid = try std.fmt.parseInt(u32, parts.next() orelse unreachable, 10);
-        const h = hand.new(cards[0..5], bid);
-        hands_buff[n_hands] = h;
-        n_hands += 1;
-    }
-
-    var hands = hands_buff[0..n_hands];
-    std.sort.heap(hand, hands, .{}, hand.lessThan);
-
-    var result: usize = 0;
-    for (hands, 0..) |h, i| {
-        result += (i + 1) * h.bid;
-    }
-
-    std.debug.print("Result: {d}\n", .{result});
+    const part1_result = try solve(file_contents, false);
+    const part2_result = try solve(file_contents, true);
+    std.debug.print("Part 1: {}\n", .{part1_result});
+    std.debug.print("Part 2: {}\n", .{part2_result});
 }
