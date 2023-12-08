@@ -4,14 +4,13 @@ const BUFF_SIZE = 1024 * 200;
 const MAX_FILE_SIZE = 1024 * 100;
 
 fn gcd(comptime T: type, a: T, b: T) T {
-    if (b == 0) {
-        return a;
-    }
-
-    return gcd(T, b, a % b);
+    return if (b == 0)
+        a
+    else
+        gcd(T, b, a % b);
 }
 
-fn lcm(comptime T: type, a: T, b: T) T {
+inline fn lcm(comptime T: type, a: T, b: T) T {
     return (a * b) / gcd(T, a, b);
 }
 
