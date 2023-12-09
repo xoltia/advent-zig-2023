@@ -53,6 +53,7 @@ fn part2(file_contents: []u8, allocator: std.mem.Allocator) !usize {
     var nodes = std.StringArrayHashMap(struct { left: *const [3]u8, right: *const [3]u8 }).init(allocator);
     var starting_keys = std.ArrayList(*const [3]u8).init(allocator);
     defer nodes.deinit();
+    defer starting_keys.deinit();
 
     while (lines.next()) |line| {
         if (line.len == 0) {
@@ -111,6 +112,7 @@ pub fn main() !void {
     var fba = std.heap.FixedBufferAllocator.init(&buff);
     const allocator = fba.allocator();
     const file_contents = try file.readToEndAlloc(allocator, MAX_FILE_SIZE);
+    defer allocator.free(file_contents);
     const hops_part1 = try part1(file_contents, allocator);
     const hops_part2 = try part2(file_contents, allocator);
 
